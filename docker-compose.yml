@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  dev:
+    container_name: ${APP_NAME}_dev
+    image: ${APP_NAME}_dev:1.0.0
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:dev
+    ports:
+      - 3000:3000
+      - 9229:9229
+    networks:
+      - default
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+    restart: always
+  prod:
+    container_name: ${APP_NAME}_prod
+    image: ${APP_NAME}_prod:1.0.0
+    build:
+      context: .
+      target: production
+      dockerfile: ./Dockerfile
+    command: npm run start:prod
+    ports:
+      - 3000:3000
+      - 9229:9229
+    networks:
+      - default
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+    restart: on-failure
+  postgres:
+    container_name: "${APP_NAME}_postgres"
+    image: postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - default
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    restart: on-failure
+networks:
+  default:
+    driver: bridge
